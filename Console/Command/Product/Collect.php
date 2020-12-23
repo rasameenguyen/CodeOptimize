@@ -8,6 +8,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Magento\Framework\App\State as StateAppFramework;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
+use Magento\Framework\Model\ResourceModel\Iterator as IteratorResourceModel;
 
 /**
  * Class Collect
@@ -33,15 +34,30 @@ class Collect extends Command
     /** @var ProductCollectionFactory  */
     protected $productCollectionFactory;
 
+    protected $total = 0;
+
+    /** @var IteratorResourceModel  */
+    protected $_resourceIterator;
+
+    /**
+     * Collect constructor.
+     * @param StateAppFramework $appState
+     * @param ProductRepositoryInterface $productRepository
+     * @param ProductCollectionFactory $productCollectionFactory
+     * @param IteratorResourceModel $resourceIterator
+     * @param string|null $name
+     */
     public function __construct(
         StateAppFramework $appState,
         ProductRepositoryInterface $productRepository,
         ProductCollectionFactory $productCollectionFactory,
+        IteratorResourceModel $resourceIterator,
         string $name = null
     ) {
         $this->appState = $appState;
         $this->productRepository = $productRepository;
         $this->productCollectionFactory = $productCollectionFactory;
+        $this->_resourceIterator = $resourceIterator;
         parent::__construct($name);
     }
 
@@ -94,11 +110,20 @@ class Collect extends Command
         try {
             $this->appState->setAreaCode(\Magento\Framework\App\Area::AREA_GLOBAL);
             $output->writeln("Begin: ...");
-            if($input->getOption(self::ISSUE_NUMBER_1) ){
+            if($input->getOption(self::ISSUE_NUMBER_1)){
                $this->runIssues1($output);
+            }
+            if($input->getOption(self::ISSUE_NUMBER_2)){
+                $this->runIssues2($output);
+            }
+            if($input->getOption(self::ISSUE_NUMBER_3)){
+                $this->runIssues3($output);
             }
             if($input->getOption(self::ISSUE_NUMBER_4)){
                 $this->runIssues4($output);
+            }
+            if($input->getOption(self::ISSUE_NUMBER_5)){
+                $this->runIssues5($output);
             }
             $output->writeln("Completed!");
         } catch (\Exception $exception){
@@ -107,6 +132,7 @@ class Collect extends Command
     }
 
     /**
+     * example about the count() function with for loop in php
      * @param $output
      * @throws \Exception
      */
@@ -129,7 +155,12 @@ class Collect extends Command
         }
     }
 
-    private function runIssues4($output)
+    /**
+     * example about the Redundant data set utilization issue
+     * @param $output
+     * @throws \Exception
+     */
+    private function runIssues2($output)
     {
         try {
             $startTime = microtime(true);
@@ -138,9 +169,76 @@ class Collect extends Command
             $productCollection->getSku();
             $endTime = microtime(true);
             $time = $endTime - $startTime;
-            $output->writeln("Execute time issue 4: ".$time);
+            $output->writeln("Execute time issue 2: ".$time);
         } catch (\Exception $exception) {
             throw new \Exception($exception->getMessage());
         }
+    }
+
+    /**
+     * @param $output
+     * @throws \Exception
+     */
+    private function runIssues3($output)
+    {
+        try {
+            $startTime = microtime(true);
+            $productCollection = $this->productCollectionFactory->create();
+            $count = 0;
+            foreach ($productCollection as $product) {
+                $count++;
+            }
+            $endTime = microtime(true);
+            $time = $endTime - $startTime;
+            $output->writeln("Execute time issue 3: ".$time);
+            $output->writeln("Total product load: ".$count);
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
+        }
+    }
+
+    /**
+     * @param $output
+     * @throws \Exception
+     */
+    private function runIssues4($output)
+    {
+        try {
+            $startTime = microtime(true);
+            $productCollection = $this->productCollectionFactory->create();
+            $productCollection->walk([$this, 'callBack']);
+            $endTime = microtime(true);
+            $time = $endTime - $startTime;
+            $output->writeln("Execute time issue 4: ".$time);
+            $output->writeln("Total product load: ".$this->total);
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
+        }
+    }
+
+    private function runIssues5($output)
+    {
+        try {
+            $startTime = microtime(true);
+            $productCollection = $this->productCollectionFactory->create();
+            $this->_resourceIterator->walk(
+                $productCollection->getSelect(),
+                [[$this, 'callBack']],
+                []
+            );
+            $endTime = microtime(true);
+            $time = $endTime - $startTime;
+            $output->writeln("Execute time issue 5: ".$time);
+            $output->writeln("Total product load: ".$this->total);
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
+        }
+    }
+
+    /**
+     * @param $row
+     */
+    public function callBack($row){
+        $this->total += 1;
     }
 }
