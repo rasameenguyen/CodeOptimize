@@ -17,11 +17,11 @@ class Collect extends Command
 {
     const CLI_NAME = 'time:issue';
     const ISSUE_NUMBER = 'issue_number';
-    const ISSUE_NUMBER_1 = 1;
-    const ISSUE_NUMBER_2 = 2;
-    const ISSUE_NUMBER_3 = 3;
-    const ISSUE_NUMBER_4 = 4;
-    const ISSUE_NUMBER_5 = 5;
+    const ISSUE_NUMBER_1 = 'issue1';
+    const ISSUE_NUMBER_2 = 'issue2';
+    const ISSUE_NUMBER_3 = 'issue3';
+    const ISSUE_NUMBER_4 = 'issue4';
+    const ISSUE_NUMBER_5 = 'issue5';
 
 
     /** @var StateAppFramework  */
@@ -97,6 +97,9 @@ class Collect extends Command
             if($input->getOption(self::ISSUE_NUMBER_1) ){
                $this->runIssues1($output);
             }
+            if($input->getOption(self::ISSUE_NUMBER_4)){
+                $this->runIssues4($output);
+            }
             $output->writeln("Completed!");
         } catch (\Exception $exception){
             $output->writeln($exception->getMessage());
@@ -121,6 +124,21 @@ class Collect extends Command
             $endTime = microtime(true);
             $time = $endTime - $startTime;
             $output->writeln("Execute time: ".$time);
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
+        }
+    }
+
+    private function runIssues4($output)
+    {
+        try {
+            $startTime = microtime(true);
+//            $productCollection = $this->productCollectionFactory->create()->setPageSize(1)->setCurPage(1)->getFirstItem();
+            $productCollection = $this->productCollectionFactory->create()->getFirstItem();
+            $productCollection->getSku();
+            $endTime = microtime(true);
+            $time = $endTime - $startTime;
+            $output->writeln("Execute time issue 4: ".$time);
         } catch (\Exception $exception) {
             throw new \Exception($exception->getMessage());
         }
