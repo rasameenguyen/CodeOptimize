@@ -1,6 +1,7 @@
 <?php
 namespace Magenest\CodeOptimize\Console\Command\Product;
 
+use Magenest\CodeOptimize\Model\RasameeEntityFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -23,6 +24,7 @@ class Collect extends Command
     const ISSUE_NUMBER_3 = 'issue3';
     const ISSUE_NUMBER_4 = 'issue4';
     const ISSUE_NUMBER_5 = 'issue5';
+    const ISSUE_NUMBER_6 = 'issue6';
 
 
     /** @var StateAppFramework  */
@@ -39,12 +41,16 @@ class Collect extends Command
     /** @var IteratorResourceModel  */
     protected $_resourceIterator;
 
+    /** @var RasameeEntityFactory  */
+    protected $_rasameeEntityFactory;
+
     /**
      * Collect constructor.
      * @param StateAppFramework $appState
      * @param ProductRepositoryInterface $productRepository
      * @param ProductCollectionFactory $productCollectionFactory
      * @param IteratorResourceModel $resourceIterator
+     * @param RasameeEntityFactory $rasameeEntityFactory
      * @param string|null $name
      */
     public function __construct(
@@ -52,12 +58,14 @@ class Collect extends Command
         ProductRepositoryInterface $productRepository,
         ProductCollectionFactory $productCollectionFactory,
         IteratorResourceModel $resourceIterator,
+        RasameeEntityFactory $rasameeEntityFactory,
         string $name = null
     ) {
         $this->appState = $appState;
         $this->productRepository = $productRepository;
         $this->productCollectionFactory = $productCollectionFactory;
         $this->_resourceIterator = $resourceIterator;
+        $this->_rasameeEntityFactory = $rasameeEntityFactory;
         parent::__construct($name);
     }
 
@@ -93,6 +101,12 @@ class Collect extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'run issue number 5'
+            ),
+            new InputOption(
+                self::ISSUE_NUMBER_6,
+                null,
+                InputOption::VALUE_NONE,
+                'run issue number 6'
             )
         ];
 
@@ -124,6 +138,9 @@ class Collect extends Command
             }
             if($input->getOption(self::ISSUE_NUMBER_5)){
                 $this->runIssues5($output);
+            }
+            if($input->getOption(self::ISSUE_NUMBER_6)){
+                $this->runIssues6($output);
             }
             $output->writeln("Completed!");
         } catch (\Exception $exception){
@@ -240,5 +257,22 @@ class Collect extends Command
      */
     public function callBack($row){
         $this->total += 1;
+    }
+
+    public function runIssues6($output)
+    {
+        try {
+            $rasamee = $this->_rasameeEntityFactory->create();
+            $rasamee->addData(
+                [
+                    'id' => 1,
+                    'name' => 'nguyen',
+                    'title' => 'test',
+                    'level' => 10
+                ]
+            )->save();
+        }catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
+        }
     }
 }
